@@ -14,7 +14,7 @@ def main():
     #setup
     pygame.init()
     surface = pygame.display.set_mode((SCREEN_WIDTH, SCREEN_HEIGHT))
-    pygame.display.set_caption("Test")
+    pygame.display.set_caption("Chess!")
     game = Game.Game(Board.Board())
     board = game.board
     board.setup_pieces()

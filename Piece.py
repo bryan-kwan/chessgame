@@ -7,7 +7,9 @@ class Piece:
         self.img = img
         self.row = row 
         self.col = col
-        self.rect = pygame.Rect
+        self.rect = pygame.Rect #pygame coordinates
+        self.captured = False #has the piece been captured
+        self.first_move = True #has the piece moved yet
 
     def copy(self):
         new_piece = Piece(self.colour, self.type, self.img, self.row, self.col)
