@@ -11,7 +11,7 @@ class Game():
             return
         old_board = self.board.copy() #make a copy of the board state
         self.history.append(old_board) #store in history
-        self.board.grid[dest_row][dest_col] = self.board.grid[src_row][src_col].copy() #copy piece from src to dest
+        self.board.grid[dest_row][dest_col] = self.board.grid[src_row][src_col].copy(dest_row, dest_col) #copy piece from src to dest
         self.board.grid[src_row][src_col].colour = '' #src piece becomes empty
         self.board.grid[src_row][src_col].type = ''
         self.board.grid[dest_row][dest_col].first_move = False #the piece has moved now
@@ -46,14 +46,15 @@ class Game():
         #can't put your own king in check
         #look at the board state of the candidate move
         next_board = self.board.copy()
+        next_board.grid[dest_row][dest_col] = self.board.grid[src_row][src_col].copy(dest_row, dest_col)
+        next_board.grid[src_row][src_col].type=''
+        next_board.grid[src_row][src_col].colour=''
+        next_board.grid[dest_row][dest_col].first_move = False
         for row in next_board.grid: #find your king
             for element in row:
                 if element.type=='k' and element.colour==your_colour:
                     king = element
-        next_board.grid[dest_row][dest_col] = self.board.grid[src_row][src_col].copy()
-        next_board.grid[src_row][src_col].type=''
-        next_board.grid[src_row][src_col].colour=''
-        next_board.grid[dest_row][dest_col].first_move = False
+        print("test:", king.row, king.col)
         if(self.check_square_attacked(king.row, king.col, your_colour, next_board)==True): #check if your move makes your king get attacked
             return False
         #general rules-------------------------------------
@@ -262,6 +263,7 @@ class Game():
         return True
 
     def check_square_attacked(self, row, col, colour, board): #checks if a square is being attacked (ie. can be captured next turn) for a given colour
+        print(row, col)
         your_colour = colour
         if your_colour=='w':
             opposite_colour='b'
@@ -305,8 +307,11 @@ class Game():
             square = board.grid[r][col+offset]
             if square.colour==your_colour: #can't be attacked through your own pieces
                 break
-            if square.type=='p' and offset==1: #attacking black pawn
-                return True
+            if square.type=='p':  #black pawn
+                if offset==1: #attacking
+                    return True 
+                else:
+                    break
             if square.type=='k': #knights can never attack diagonally
                 break
             if square.type=='b': #attacking black bishop
@@ -323,8 +328,11 @@ class Game():
             square = board.grid[r][col-offset]
             if square.colour==your_colour: #can't be attacked through your own pieces
                 break
-            if square.type=='p' and offset==1: #attacking black pawn
-                return True
+            if square.type=='p': #black pawn
+                if offset==1: #attacking
+                    return True
+                else:
+                    break
             if square.type=='k': #knights can never attack diagonally
                 break
             if square.type=='b': #attacking black bishop
@@ -448,10 +456,28 @@ class Game():
     
     #the move_piece function already moves the king so to complete castling we must move the rook as well
     def castle_kingside(self, colour):
-        print("castled kingside")
+        if colour=='w':
+            self.board.grid[7][5] = self.board.grid[7][7].copy(7,5)
+            self.board.grid[7][5].first_move=False
+            self.board.grid[7][7].type=''
+            self.board.grid[7][7].colour=''
+        else:
+            self.board.grid[0][5] = self.board.grid[0][7].copy(0,5)
+            self.board.grid[0][5].first_move=False
+            self.board.grid[0][7].type=''
+            self.board.grid[0][7].colour=''
 
     def castle_queenside(self, colour):
-        print("castled queenside")
+        if colour=='w':
+            self.board.grid[7][3] = self.board.grid[7][0].copy(7,3)
+            self.board.grid[7][3].first_move=False
+            self.board.grid[7][0].type=''
+            self.board.grid[7][0].colour=''
+        else:
+            self.board.grid[0][3] = self.board.grid[0][0].copy(0,3)
+            self.board.grid[0][3].first_move=False
+            self.board.grid[0][0].type=''
+            self.board.grid[0][0].colour=''
     
     #the move_piece function already moves the attacking pawn so to en passant we need to capture the enemy pawn (located behind the attacking pawn)
     def en_passant(self, src_row, src_col, dest_row, dest_col):

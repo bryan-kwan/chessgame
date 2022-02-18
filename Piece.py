@@ -11,7 +11,7 @@ class Piece:
         self.captured = False #has the piece been captured
         self.first_move = True #has the piece moved yet
 
-    def copy(self):
-        new_piece = Piece(self.colour, self.type, self.img, self.row, self.col)
+    def copy(self, row, col):
+        new_piece = Piece(self.colour, self.type, self.img, row, col)
         new_piece.rect = self.rect
         return new_piece

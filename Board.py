@@ -17,7 +17,7 @@ class Board:
         new_board = Board()
         for x in range(8):
             for y in range(8):
-                new_board.grid[x][y] = self.grid[x][y].copy()
+                new_board.grid[x][y] = self.grid[x][y].copy(x, y)
         return new_board
 
     def draw(self, surface, grid_size): #creates a grid of squares and renders pieces
