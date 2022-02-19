@@ -20,7 +20,7 @@ class Game():
         else:
             self.turn='w'
 
-
+#move logic-----------------------------------------------------------
     def check_legal_move(self, src_row, src_col, dest_row, dest_col): #checks if a move is allowed in standard chess
 
         src_square = self.board.grid[src_row][src_col]
@@ -54,7 +54,6 @@ class Game():
             for element in row:
                 if element.type=='k' and element.colour==your_colour:
                     king = element
-        print("test:", king.row, king.col)
         if(self.check_square_attacked(king.row, king.col, your_colour, next_board)==True): #check if your move makes your king get attacked
             return False
         #general rules-------------------------------------
@@ -78,8 +77,10 @@ class Game():
                     return False
             elif(dest_col!=src_col and abs(dest_col-src_col)==1): #pawns can only move diagonally if they capture or en passant
                 if(src_square.colour=='w' and dest_square.colour=='b'):
+                    self.check_promote_pawn(src_row, src_col, dest_row, 'q') #promotes to queen by default
                     return True
                 if(src_square.colour=='b' and dest_square.colour=='w'):
+                    self.check_promote_pawn(src_row, src_col, dest_row, 'q')
                     return True
 
                 #en passant checker
@@ -107,20 +108,21 @@ class Game():
                     last_square = last_board.grid[src_row+2][src_col-1]  #square enemy pawn was last on    
                     current_square = self.board.grid[src_row][src_col-1] #square enemy pawn is currently on 
                     if (src_col != 0 and last_square.type=='p'  #checks for pawns to the right
-                    and last_square.colour=='b' 
+                    and last_square.colour=='w' 
                     and last_square.first_move==True):
-                        if(current_square.type=='p' and current_square.colour=='b'):
+                        if(current_square.type=='p' and current_square.colour=='w'):
                             self.en_passant(src_row, src_col, dest_row, dest_col)
                             return True
                     last_square = last_board.grid[src_row+2][src_col+1]  #square enemy pawn was last on    
                     current_square = self.board.grid[src_row][src_col+1] #square enemy pawn is currently on 
                     if (src_col!=7 and last_square.type=='p' #checks for pawns to the left
-                    and last_square.colour=='b'
+                    and last_square.colour=='w'
                     and last_square.first_move==True):
-                        if(current_square.type=='p' and current_square.colour=='b'):
+                        if(current_square.type=='p' and current_square.colour=='w'):
                             self.en_passant(src_row, src_col, dest_row, dest_col)
                             return True
                 return False
+            self.check_promote_pawn(src_row, src_col, dest_row, 'q')
         #pawn rules----------------------------------------
         
         #rook moves----------------------------------------
@@ -263,7 +265,6 @@ class Game():
         return True
 
     def check_square_attacked(self, row, col, colour, board): #checks if a square is being attacked (ie. can be captured next turn) for a given colour
-        print(row, col)
         your_colour = colour
         if your_colour=='w':
             opposite_colour='b'
@@ -307,7 +308,7 @@ class Game():
             square = board.grid[r][col+offset]
             if square.colour==your_colour: #can't be attacked through your own pieces
                 break
-            if square.type=='p':  #black pawn
+            if square.type=='p' and square.colour=='b':  #black pawn
                 if offset==1: #attacking
                     return True 
                 else:
@@ -328,7 +329,7 @@ class Game():
             square = board.grid[r][col-offset]
             if square.colour==your_colour: #can't be attacked through your own pieces
                 break
-            if square.type=='p': #black pawn
+            if square.type=='p' and square.colour=='b': #black pawn
                 if offset==1: #attacking
                     return True
                 else:
@@ -381,8 +382,9 @@ class Game():
             square = board.grid[r][col-offset]
             if square.colour==your_colour: #can't be attacked through your own pieces
                 break
-            if square.type=='p': #can't be attacked from behind by a pawn
-                break
+            if square.type=='p' and square.colour=='w': #white pawn
+                if offset==1: #attacking
+                    return True
             if square.type=='k': #knights can never attack diagonally
                 break
             if square.type=='b': #attacking black bishop
@@ -395,12 +397,13 @@ class Game():
             offset+=1
         r = row+1
         offset = 1
-        while r <=7 and (col+offset>=0): #checks bot right diagonal
+        while r <=7 and (col+offset<=7): #checks bot right diagonal
             square = board.grid[r][col+offset]
             if square.colour==your_colour: #can't be attacked through your own pieces
                 break
-            if square.type=='p': #can't be attacked from behind by a pawn
-                break
+            if square.type=='p' and square.colour=='w': #white pawn
+                if offset==1: #attacking
+                    return True
             if square.type=='k': #knights can never attack diagonally
                 break
             if square.type=='b': #attacking black bishop
@@ -409,7 +412,7 @@ class Game():
                 break
             if square.type=='q': #attacking black queen
                 return True
-            r+=-1
+            r+=1
             offset+=1
         #brute force checking for knight moves
         if row-2>=0:
@@ -450,9 +453,20 @@ class Game():
                     return True
             
         return False #not attacked
-        
-    def promote_pawn(self, src_row, src_col, dest_row, dest_col): #checks if a pawn is promoted and if so it converts to a queen
-        print("you promoted!")
+#move logic-----------------------------------------------------------      
+
+#special moves------------------------------------------------------
+    def check_promote_pawn(self, src_row, src_col, dest_row, promotion_piece): #ckecks for promotion and promotes a pawn 
+        src_square = self.board.grid[src_row][src_col]
+        if src_square.colour=='w':
+            if dest_row!=0:
+                return
+        if src_square.colour=='b':
+            if dest_row!=7:
+                return
+        if src_square.type=='p': #if a white pawn reaches the 8th rank or a black pawn the 1st rank, they promote
+            self.board.grid[src_row][src_col].type=promotion_piece
+
     
     #the move_piece function already moves the king so to complete castling we must move the rook as well
     def castle_kingside(self, colour):
@@ -481,7 +495,16 @@ class Game():
     
     #the move_piece function already moves the attacking pawn so to en passant we need to capture the enemy pawn (located behind the attacking pawn)
     def en_passant(self, src_row, src_col, dest_row, dest_col):
-        print("en passant!")
+        if self.board.grid[src_row][src_col].colour=='w':
+            self.board.grid[dest_row+1][dest_col].type='' #capture pawn
+            self.board.grid[dest_row+1][dest_col].colour=''
+        else:
+            self.board.grid[dest_row-1][dest_col].type='' #capture pawn
+            self.board.grid[dest_row-1][dest_col].colour=''
+ 
+
+#special moves------------------------------------------------------
+
 
     def check_checkmate(self, colour): #checks if one side's king has no more legal moves and is currently attacked
         pass
