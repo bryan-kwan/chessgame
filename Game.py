@@ -504,7 +504,21 @@ class Game():
  
 
 #special moves------------------------------------------------------
-
+    def find_legal_moves(self, src_row, src_col): #finds all legal moves for a piece, returns a list of possible moves as list of lists [[src_row, src_col, dest_row, dest_col], ...]
+        pass
 
     def check_checkmate(self, colour): #checks if one side's king has no more legal moves and is currently attacked
+        pass
+
+    def undo_move(self): #goes back one move
+        pass
+
+#aesthetic functions------------------------------------------------
+    def highlight_legal_moves(self, src_row, src_col): #highlights squares where selected piece is allowed to move
+        pass
+
+    def highlight_move(self, src_row, src_col, dest_row, dest_col): #highlights source square and destination square to show previous moves
+        pass
+
+    def remove_highlight(self, squares): #takes an array of squares to remove highlights from
         pass
